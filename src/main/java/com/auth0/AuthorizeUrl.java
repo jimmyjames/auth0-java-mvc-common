@@ -4,6 +4,7 @@ import com.auth0.client.auth.AuthAPI;
 import com.auth0.client.auth.AuthorizeUrlBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Class to create and customize an Auth0 Authorize URL.
@@ -14,6 +15,7 @@ public class AuthorizeUrl {
 
     private static final String SCOPE_OPENID = "openid";
     private final HttpServletRequest request;
+    private final HttpServletResponse response;
     private final AuthorizeUrlBuilder builder;
     private boolean used;
 
@@ -23,8 +25,9 @@ public class AuthorizeUrl {
      * @param redirectUrl  the url to redirect to after authentication
      * @param responseType the response type to use
      */
-    AuthorizeUrl(AuthAPI client, HttpServletRequest request, String redirectUrl, String responseType) {
+    AuthorizeUrl(AuthAPI client, HttpServletRequest request, HttpServletResponse response, String redirectUrl, String responseType) {
         this.request = request;
+        this.response = response;
         this.builder = client.authorizeUrl(redirectUrl)
                 .withResponseType(responseType)
                 .withScope(SCOPE_OPENID);
@@ -59,7 +62,8 @@ public class AuthorizeUrl {
      * @return the builder instance
      */
     public AuthorizeUrl withState(String state) {
-        RandomStorage.setSessionState(request, state);
+        TransientCookieStore.storeState(response, state);
+//        RandomStorage.setSessionState(request, response, state);
         builder.withState(state);
         return this;
     }
@@ -71,7 +75,8 @@ public class AuthorizeUrl {
      * @return the builder instance
      */
     public AuthorizeUrl withNonce(String nonce) {
-        RandomStorage.setSessionNonce(request, nonce);
+        TransientCookieStore.storeNonce(response, nonce);
+//        RandomStorage.setSessionNonce(request, response, nonce);
         builder.withParameter("nonce", nonce);
         return this;
     }

@@ -7,6 +7,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.Validate;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -209,10 +210,10 @@ public class AuthenticationController {
      * @throws InvalidRequestException       if the error is result of making an invalid authentication request.
      * @throws IdentityVerificationException if an error occurred while verifying the request tokens.
      */
-    public Tokens handle(HttpServletRequest request) throws IdentityVerificationException {
+    public Tokens handle(HttpServletRequest request, HttpServletResponse response) throws IdentityVerificationException {
         Validate.notNull(request);
 
-        return requestProcessor.process(request);
+        return requestProcessor.process(request, response);
     }
 
     /**
@@ -222,14 +223,16 @@ public class AuthenticationController {
      * @param redirectUri the url to call back with the authentication result.
      * @return the authorize url builder to continue any further parameter customization.
      */
-    public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, String redirectUri) {
+    public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri) {
         Validate.notNull(request);
         Validate.notNull(redirectUri);
 
-        String state = RandomStorage.secureRandomString();
-        String nonce = RandomStorage.secureRandomString();
+        String state = TransientCookieStore.secureRandomString();
+        String nonce = TransientCookieStore.secureRandomString();
+//        String state = RandomStorage.secureRandomString();
+//        String nonce = RandomStorage.secureRandomString();
 
-        return requestProcessor.buildAuthorizeUrl(request, redirectUri, state, nonce);
+        return requestProcessor.buildAuthorizeUrl(request, response, redirectUri, state, nonce);
     }
 
 }

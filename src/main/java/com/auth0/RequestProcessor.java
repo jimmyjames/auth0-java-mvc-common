@@ -7,6 +7,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.Validate;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,8 +73,8 @@ class RequestProcessor {
      * @param nonce       the nonce value that will be used if the response type contains 'id_token'. Can be null.
      * @return the authorize url builder to continue any further parameter customization.
      */
-    AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, String redirectUri, String state, String nonce) {
-        AuthorizeUrl creator = new AuthorizeUrl(client, request, redirectUri, responseType)
+    AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri, String state, String nonce) {
+        AuthorizeUrl creator = new AuthorizeUrl(client, request, response, redirectUri, responseType)
                 .withState(state);
 
         List<String> responseTypeList = getResponseType();
@@ -100,9 +101,9 @@ class RequestProcessor {
      *
      * @throws IdentityVerificationException if an error occurred while processing the request
      */
-    Tokens process(HttpServletRequest req) throws IdentityVerificationException {
+    Tokens process(HttpServletRequest req, HttpServletResponse response) throws IdentityVerificationException {
         assertNoError(req);
-        assertValidState(req);
+        assertValidState(req, response);
 
         Tokens frontChannelTokens = getFrontChannelTokens(req);
         List<String> responseTypeList = getResponseType();
@@ -114,7 +115,8 @@ class RequestProcessor {
             throw new InvalidRequestException(MISSING_ACCESS_TOKEN, "Access Token is missing from the response.");
         }
 
-        String expectedNonce = RandomStorage.removeSessionNonce(req);
+        String expectedNonce = TransientCookieStore.getNonce(req, response);
+//        String expectedNonce = RandomStorage.removeSessionNonce(req, response);
 
         // Dynamically set. Changes on every request.
         verifyOptions.setNonce(expectedNonce);
@@ -197,9 +199,13 @@ class RequestProcessor {
      * @param req the request
      * @throws InvalidRequestException if the request contains a different state from the expected one
      */
-    private void assertValidState(HttpServletRequest req) throws InvalidRequestException {
+    private void assertValidState(HttpServletRequest req, HttpServletResponse response) throws InvalidRequestException {
         String stateFromRequest = req.getParameter(KEY_STATE);
-        boolean valid = RandomStorage.checkSessionState(req, stateFromRequest);
+        String actualState = TransientCookieStore.getState(req, response);
+
+        // TODO handle null
+        boolean valid = stateFromRequest.equals(actualState);
+//        boolean valid = RandomStorage.checkSessionState(req, response, stateFromRequest);
         if (!valid) {
             throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
         }
