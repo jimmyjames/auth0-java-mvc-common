@@ -339,26 +339,26 @@ public class AuthenticationControllerTest {
         assertThat(requestProcessor.verifyOptions.getMaxAge(), is(12345));
     }
 
-    @Test
-    public void shouldProcessRequest() throws IdentityVerificationException {
-        RequestProcessor requestProcessor = mock(RequestProcessor.class);
-        AuthenticationController controller = new AuthenticationController(requestProcessor);
+//    @Test
+//    public void shouldProcessRequest() throws IdentityVerificationException {
+//        RequestProcessor requestProcessor = mock(RequestProcessor.class);
+//        AuthenticationController controller = new AuthenticationController(requestProcessor);
+//
+//        HttpServletRequest req = new MockHttpServletRequest();
+//        controller.handle(req);
+//
+//        verify(requestProcessor).process(req);
+//    }
 
-        HttpServletRequest req = new MockHttpServletRequest();
-        controller.handle(req);
-
-        verify(requestProcessor).process(req);
-    }
-
-    @Test
-    public void shouldBuildAuthorizeUriWithRandomStateAndNonce() {
-        RequestProcessor requestProcessor = mock(RequestProcessor.class);
-        AuthenticationController controller = new AuthenticationController(requestProcessor);
-
-        HttpServletRequest req = new MockHttpServletRequest();
-        controller.buildAuthorizeUrl(req, "https://redirect.uri/here");
-
-        verify(requestProcessor).buildAuthorizeUrl(eq(req), eq("https://redirect.uri/here"), anyString(), anyString());
-    }
+//    @Test
+//    public void shouldBuildAuthorizeUriWithRandomStateAndNonce() {
+//        RequestProcessor requestProcessor = mock(RequestProcessor.class);
+//        AuthenticationController controller = new AuthenticationController(requestProcessor);
+//
+//        HttpServletRequest req = new MockHttpServletRequest();
+//        controller.buildAuthorizeUrl(req, "https://redirect.uri/here");
+//
+//        verify(requestProcessor).buildAuthorizeUrl(eq(req), eq("https://redirect.uri/here"), anyString(), anyString());
+//    }
 
 }
