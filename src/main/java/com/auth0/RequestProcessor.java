@@ -52,9 +52,6 @@ class RequestProcessor {
         this.legacySameSiteCookie = legacySameSiteCookie;
     }
 
-//    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions) {
-//        this(client, responseType, verifyOptions, new IdTokenVerifier(), true);
-//    }
 
     RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions, boolean legacySameSiteCookie) {
         this(client, responseType, verifyOptions, new IdTokenVerifier(), legacySameSiteCookie);
@@ -82,6 +79,8 @@ class RequestProcessor {
     AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri, String state, String nonce) {
         AuthorizeUrl creator = new AuthorizeUrl(client, request, response, redirectUri, responseType)
                 .withState(state);
+
+        creator.withLegacySameSiteCookie(legacySameSiteCookie);
 
         List<String> responseTypeList = getResponseType();
         if (responseTypeList.contains(KEY_ID_TOKEN) && nonce != null) {
@@ -122,7 +121,6 @@ class RequestProcessor {
         }
 
         String expectedNonce = TransientCookieStore.getNonce(req, response, legacySameSiteCookie);
-//        String expectedNonce = RandomStorage.removeSessionNonce(req, response);
 
         // Dynamically set. Changes on every request.
         verifyOptions.setNonce(expectedNonce);
@@ -211,7 +209,6 @@ class RequestProcessor {
 
         // TODO handle null
         boolean valid = stateFromRequest.equals(actualState);
-//        boolean valid = RandomStorage.checkSessionState(req, response, stateFromRequest);
         if (!valid) {
             throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
         }

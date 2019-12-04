@@ -46,9 +46,6 @@ public class AuthenticationController {
         return new Builder(domain, clientId, clientSecret);
     }
 
-//    public static Builder newBuilder(String domain, String clientId, String clientSecret, boolean legacySameSiteCookie) {
-//        return new Builder(domain, clientId, "");
-//    }
 
     public static class Builder {
         private static final String RESPONSE_TYPE_CODE = "code";
@@ -235,26 +232,11 @@ public class AuthenticationController {
      * @return the authorize url builder to continue any further parameter customization.
      */
     public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri) {
-//        buildAuthorizeUrl(request, response, redirectUri, true);
         Validate.notNull(request);
         Validate.notNull(redirectUri);
 
         String state = TransientCookieStore.secureRandomString();
         String nonce = TransientCookieStore.secureRandomString();
-//        String state = RandomStorage.secureRandomString();
-//        String nonce = RandomStorage.secureRandomString();
-
-        return requestProcessor.buildAuthorizeUrl(request, response, redirectUri, state, nonce);
-    }
-
-    public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri, boolean legacySameSiteCookie) {
-        Validate.notNull(request);
-        Validate.notNull(redirectUri);
-
-        String state = TransientCookieStore.secureRandomString();
-        String nonce = TransientCookieStore.secureRandomString();
-//        String state = RandomStorage.secureRandomString();
-//        String nonce = RandomStorage.secureRandomString();
 
         return requestProcessor.buildAuthorizeUrl(request, response, redirectUri, state, nonce);
     }
