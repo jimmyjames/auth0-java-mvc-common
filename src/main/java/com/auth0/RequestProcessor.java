@@ -38,9 +38,10 @@ class RequestProcessor {
     private final String responseType;
     private final AuthAPI client;
     private final IdTokenVerifier tokenVerifier;
+    private final boolean legacySameSiteCookie;
 
     @VisibleForTesting
-    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions, IdTokenVerifier tokenVerifier) {
+    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions, IdTokenVerifier tokenVerifier, boolean legacySameSiteCookie) {
         Validate.notNull(client);
         Validate.notNull(responseType);
         Validate.notNull(verifyOptions);
@@ -48,10 +49,15 @@ class RequestProcessor {
         this.responseType = responseType;
         this.verifyOptions = verifyOptions;
         this.tokenVerifier = tokenVerifier;
+        this.legacySameSiteCookie = legacySameSiteCookie;
     }
 
-    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions) {
-        this(client, responseType, verifyOptions, new IdTokenVerifier());
+//    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions) {
+//        this(client, responseType, verifyOptions, new IdTokenVerifier(), true);
+//    }
+
+    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions, boolean legacySameSiteCookie) {
+        this(client, responseType, verifyOptions, new IdTokenVerifier(), legacySameSiteCookie);
     }
 
     /**
@@ -115,7 +121,7 @@ class RequestProcessor {
             throw new InvalidRequestException(MISSING_ACCESS_TOKEN, "Access Token is missing from the response.");
         }
 
-        String expectedNonce = TransientCookieStore.getNonce(req, response);
+        String expectedNonce = TransientCookieStore.getNonce(req, response, legacySameSiteCookie);
 //        String expectedNonce = RandomStorage.removeSessionNonce(req, response);
 
         // Dynamically set. Changes on every request.
@@ -201,7 +207,7 @@ class RequestProcessor {
      */
     private void assertValidState(HttpServletRequest req, HttpServletResponse response) throws InvalidRequestException {
         String stateFromRequest = req.getParameter(KEY_STATE);
-        String actualState = TransientCookieStore.getState(req, response);
+        String actualState = TransientCookieStore.getState(req, response, legacySameSiteCookie);
 
         // TODO handle null
         boolean valid = stateFromRequest.equals(actualState);

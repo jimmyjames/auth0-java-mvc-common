@@ -46,6 +46,10 @@ public class AuthenticationController {
         return new Builder(domain, clientId, clientSecret);
     }
 
+//    public static Builder newBuilder(String domain, String clientId, String clientSecret, boolean legacySameSiteCookie) {
+//        return new Builder(domain, clientId, "");
+//    }
+
     public static class Builder {
         private static final String RESPONSE_TYPE_CODE = "code";
 
@@ -56,6 +60,7 @@ public class AuthenticationController {
         private JwkProvider jwkProvider;
         private Integer clockSkew;
         private Integer authenticationMaxAge;
+        private boolean legacySameSiteCookie;
 
         Builder(String domain, String clientId, String clientSecret) {
             Validate.notNull(domain);
@@ -66,6 +71,7 @@ public class AuthenticationController {
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.responseType = RESPONSE_TYPE_CODE;
+            this.legacySameSiteCookie = true;
         }
 
         /**
@@ -119,6 +125,11 @@ public class AuthenticationController {
             return this;
         }
 
+        public Builder withLegacySameSiteCookie(boolean legacySameSiteCookie) {
+            this.legacySameSiteCookie = legacySameSiteCookie;
+            return this;
+        }
+
         /**
          * Create a new {@link AuthenticationController} instance that will handle both Code Grant and Implicit Grant flows using either Code Exchange or Token Signature verification.
          *
@@ -146,7 +157,7 @@ public class AuthenticationController {
             IdTokenVerifier.Options verifyOptions = createIdTokenVerificationOptions(issuer, clientId, signatureVerifier);
             verifyOptions.setClockSkew(clockSkew);
             verifyOptions.setMaxAge(authenticationMaxAge);
-            RequestProcessor processor = new RequestProcessor(apiClient, responseType, verifyOptions);
+            RequestProcessor processor = new RequestProcessor(apiClient, responseType, verifyOptions, legacySameSiteCookie);
             return new AuthenticationController(processor);
         }
 
@@ -224,6 +235,19 @@ public class AuthenticationController {
      * @return the authorize url builder to continue any further parameter customization.
      */
     public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri) {
+//        buildAuthorizeUrl(request, response, redirectUri, true);
+        Validate.notNull(request);
+        Validate.notNull(redirectUri);
+
+        String state = TransientCookieStore.secureRandomString();
+        String nonce = TransientCookieStore.secureRandomString();
+//        String state = RandomStorage.secureRandomString();
+//        String nonce = RandomStorage.secureRandomString();
+
+        return requestProcessor.buildAuthorizeUrl(request, response, redirectUri, state, nonce);
+    }
+
+    public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri, boolean legacySameSiteCookie) {
         Validate.notNull(request);
         Validate.notNull(redirectUri);
 

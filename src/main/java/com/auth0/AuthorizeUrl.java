@@ -5,6 +5,8 @@ import com.auth0.client.auth.AuthorizeUrlBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Class to create and customize an Auth0 Authorize URL.
@@ -17,6 +19,11 @@ public class AuthorizeUrl {
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final AuthorizeUrlBuilder builder;
+    private final String responseType;
+    private boolean legacySameSiteCookie;
+    private String nonce;
+    private String state;
+
     private boolean used;
 
     /**
@@ -26,12 +33,31 @@ public class AuthorizeUrl {
      * @param responseType the response type to use
      */
     AuthorizeUrl(AuthAPI client, HttpServletRequest request, HttpServletResponse response, String redirectUrl, String responseType) {
+//        this(client, request, response, redirectUrl, responseType, true);
         this.request = request;
         this.response = response;
+        this.responseType = responseType;
+        this.legacySameSiteCookie = true;
         this.builder = client.authorizeUrl(redirectUrl)
                 .withResponseType(responseType)
                 .withScope(SCOPE_OPENID);
     }
+//
+//    /**
+//     * @param client       the Auth0 Authentication API client
+//     * @param request      request where the state will be saved
+//     * @param redirectUrl  the url to redirect to after authentication
+//     * @param responseType the response type to use
+//     */
+//    AuthorizeUrl(AuthAPI client, HttpServletRequest request, HttpServletResponse response, String redirectUrl, String responseType, boolean legacySameSiteCookie) {
+//        this.request = request;
+//        this.response = response;
+//        this.responseType = responseType;
+//        this.legacySameSiteCookie = legacySameSiteCookie;
+//        this.builder = client.authorizeUrl(redirectUrl)
+//                .withResponseType(responseType)
+//                .withScope(SCOPE_OPENID);
+//    }
 
     /**
      * Sets the connection value.
@@ -41,6 +67,11 @@ public class AuthorizeUrl {
      */
     public AuthorizeUrl withConnection(String connection) {
         builder.withConnection(connection);
+        return this;
+    }
+
+    public AuthorizeUrl withLegacySameSiteCookie(boolean legacySameSiteCookie) {
+        this.legacySameSiteCookie = legacySameSiteCookie;
         return this;
     }
 
@@ -62,8 +93,9 @@ public class AuthorizeUrl {
      * @return the builder instance
      */
     public AuthorizeUrl withState(String state) {
-        TransientCookieStore.storeState(response, state);
+//        TransientCookieStore.storeState(response, state);
 //        RandomStorage.setSessionState(request, response, state);
+        this.state = state;
         builder.withState(state);
         return this;
     }
@@ -75,8 +107,9 @@ public class AuthorizeUrl {
      * @return the builder instance
      */
     public AuthorizeUrl withNonce(String nonce) {
-        TransientCookieStore.storeNonce(response, nonce);
+//        TransientCookieStore.storeNonce(response, nonce);
 //        RandomStorage.setSessionNonce(request, response, nonce);
+        this.nonce = nonce;
         builder.withParameter("nonce", nonce);
         return this;
     }
@@ -125,7 +158,37 @@ public class AuthorizeUrl {
             throw new IllegalStateException("The AuthorizeUrl instance must not be reused.");
         }
         used = true;
+        // TODO - how to determine what to do with cookies for sameSite and secure?
+        // and fallback ;)
+        // SameSite + Secure if:
+        // -- responseType is id_token (contains, or exact? Probably contains since that is what determines response mode)
+        // -- response mode is form_post (this is determined in request processor...)
+//        List<String> responseTypes = Arrays.asList(responseType.split(" "));
+        // UGH.... we don't have access to the state and nonce here...
+//        boolean isSameSiteNone = containsFormPost();
+//        TransientCookieStore.storeNonce(response, nonce, isSameSiteNone);
+//        TransientCookieStore.storeState(response, state, isSameSiteNone);
+
+        TransientCookieStore.SameSite sameSiteValue = containsFormPost() ? TransientCookieStore.SameSite.NONE : TransientCookieStore.SameSite.LAX;
+        TransientCookieStore.storeState(response, state, sameSiteValue, legacySameSiteCookie);
+        if (nonce != null) {
+            TransientCookieStore.storeNonce(response, nonce, sameSiteValue, legacySameSiteCookie);
+        }
+
+
+//        if (containsFormPost()) {
+//            TransientCookieStore.storeNonce(response, nonce, TransientCookieStore.SameSite.NONE, true);
+//            TransientCookieStore.storeState(response, state, TransientCookieStore.SameSite.NONE, true);
+//        } else {
+//            TransientCookieStore.storeNonce(response, nonce, TransientCookieStore.SameSite.NONE, true);
+//            TransientCookieStore.storeState(response, state, TransientCookieStore.SameSite.NONE, true);
+//        }
         return builder.build();
+    }
+
+    private boolean containsFormPost() {
+        List<String> responseTypes = Arrays.asList(responseType.split(" "));
+        return responseTypes.contains("id_token");
     }
 
 }

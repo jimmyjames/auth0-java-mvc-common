@@ -2,6 +2,8 @@ package com.auth0;
 
 //import org.apache.commons.codec.binary.Base64;
 
+import org.apache.commons.lang3.Validate;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,8 +14,43 @@ import java.util.List;
 
 public class TransientCookieStore {
 
+    enum SameSite {
+        LAX("Lax"),
+        NONE("None"),
+        STRICT("Strict");
+
+        private String value;
+
+        public String getValue() {
+            return this.value;
+        }
+
+        SameSite(String value) {
+            this.value = value;
+        }
+    }
+
+    private SameSite sameSite;
+    private boolean isSecure;
+
     private static final String STATE = "com.auth0.state.updated";
     private static final String NONCE = "com.auth0.nonce.updated";
+
+    SameSite getSameSite() {
+        return this.sameSite;
+    }
+
+    void setSameSite(SameSite sameSite) {
+        this.sameSite = sameSite;
+    }
+
+    boolean isSecure() {
+        return this.isSecure;
+    }
+
+    void setSecure(boolean isSecure) {
+        this.isSecure = isSecure;
+    }
 
     /**
      * Generates a new random string using {@link SecureRandom}.
@@ -30,28 +67,87 @@ public class TransientCookieStore {
 //        return Base64.encodeBase64URLSafeString(randomBytes);
     }
 
-    static void storeState(HttpServletResponse response, String state) {
-        store(response, STATE, state);
+//    static void storeState(HttpServletResponse response, String state, SameSite sameSite) {
+//        store(response, STATE, state, sameSite, sameSite.equals(SameSite.NONE));
+//    }
+//
+//    static void storeState(HttpServletResponse response, String state, boolean sameSiteNone) {
+//        store(response, STATE, state, sameSiteNone);
+//    }
+
+    static void storeState(HttpServletResponse response, String state, SameSite sameSite, boolean legacySameSiteCookie) {
+        store(response, STATE, state, sameSite, legacySameSiteCookie);
+    }
+//    static void storeState(HttpServletResponse response, String state, SameSite sameSite, boolean secure) {
+//        store(response, STATE, state, sameSite, secure);
+//    }
+
+    static void storeNonce(HttpServletResponse response, String nonce, SameSite sameSite, boolean legacySameSiteCookie) {
+        store(response, NONCE, nonce, sameSite, legacySameSiteCookie);
+    }
+//    static void storeNonce(HttpServletResponse response, String nonce, SameSite sameSite) {
+//        store(response, NONCE, nonce, sameSite, sameSite.equals(SameSite.NONE));
+//    }
+//
+//    static void storeNonce(HttpServletResponse response, String nonce, boolean sameSiteNone) {
+//        store(response, NONCE, nonce, sameSiteNone);
+//    }
+
+//    static void storeNonce(HttpServletResponse response, String nonce, SameSite sameSite, boolean secure) {
+//        store(response, NONCE, nonce, sameSite, secure);
+//    }
+
+    static String getState(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
+        return getOnce(STATE, request, response, legacySameSiteCookie);
     }
 
-    static void storeNonce(HttpServletResponse response, String nonce) {
-        store(response, NONCE, nonce);
+    static String getNonce(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
+        return getOnce(NONCE, request, response, legacySameSiteCookie);
     }
 
-    static String getState(HttpServletRequest request, HttpServletResponse response) {
-        return getOnce(STATE, request, response);
-    }
+//    private static void store(HttpServletResponse response, String key, String value, SameSite sameSite, boolean secure) {
+//        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite.getValue());
+//        if (secure) {
+//            cookie = cookie.concat("; Secure");
+//        }
+////        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s; Secure", key, value, sameSite.getValue());
+//        response.addHeader("Set-Cookie", cookie);
+//
+//    }
 
-    static String getNonce(HttpServletRequest request, HttpServletResponse response) {
-        return getOnce(NONCE, request, response);
-    }
+    private static void store(HttpServletResponse response, String key, String value, SameSite sameSite, boolean legacySameSiteCookie) {
+//        String sameSiteValue = sameSite.getValue();
+//        boolean isSecure = SameSite.NONE.equals(sameSite);
+        boolean sameSiteNone = SameSite.NONE.equals(sameSite);
 
-    private static void store(HttpServletResponse response, String key, String value) {
-        String cookie = String.format("%s=%s; HttpOnly; SameSite=None; Secure", key, value);
+        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite);
+        if (sameSiteNone) {
+            cookie = cookie.concat("; Secure");
+        }
         response.addHeader("Set-Cookie", cookie);
+
+        // set legacy fallback cookie (if configured) for clients that won't accept SameSite=None
+        if (sameSiteNone && legacySameSiteCookie) {
+            String legacyCookie = String.format("%s=%s; HttpOnly", "_" + key, value);
+            response.addHeader("Set-Cookie", legacyCookie);
+        }
+
     }
 
-    private static String getOnce(String cookieName, HttpServletRequest request, HttpServletResponse response) {
+//    private static void store(HttpServletResponse response, String key, String value, boolean sameSiteNone) {
+////        Validate.notNull(response, "HttpServletResponse");
+////        Validate.notNull
+////        String sameSite = sameSiteNone ? SameSite.LAX : SameSite.LAX;
+//        String sameSite = sameSiteNone ? "None" : "Lax";
+//        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite);
+//        if (sameSiteNone) {
+//            cookie = cookie.concat("; Secure");
+//        }
+////        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s; Secure", key, value, sameSite.getValue());
+//        response.addHeader("Set-Cookie", cookie);
+//    }
+
+    private static String getOnce(String cookieName, HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         List<Cookie> cookies = Arrays.asList(request.getCookies());
         Cookie cookie = cookies.stream()
                 .filter(c -> cookieName.equals(c.getName()))
@@ -61,6 +157,18 @@ public class TransientCookieStore {
         String cookieVal = cookie == null ? null : cookie.getValue();
 
         delete(cookie, response);
+
+        if (legacySameSiteCookie) {
+            Cookie legacyCookie = cookies.stream()
+                    .filter(c -> ("_" + cookieName).equals(c.getName()))
+                    .findFirst()
+                    .orElse(null);
+
+            String legacyCookieVal = legacyCookie == null ? null : legacyCookie.getValue();
+
+            cookieVal = cookieVal == null ? legacyCookieVal : cookieVal;
+            delete(legacyCookie, response);
+        }
 
         return cookieVal;
     }
