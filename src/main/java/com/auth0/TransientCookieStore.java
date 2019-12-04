@@ -1,5 +1,7 @@
 package com.auth0;
 
+import org.apache.commons.lang3.Validate;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,9 +19,9 @@ public class TransientCookieStore {
 
         private String value;
 
-//        public String getValue() {
-//            return this.value;
-//        }
+        public String getValue() {
+            return this.value;
+        }
 
         SameSite(String value) {
             this.value = value;
@@ -29,8 +31,8 @@ public class TransientCookieStore {
     private SameSite sameSite;
     private boolean isSecure;
 
-    private static final String STATE = "com.auth0.state.updated";
-    private static final String NONCE = "com.auth0.nonce.updated";
+    private static final String STATE = "com.auth0.state";
+    private static final String NONCE = "com.auth0.nonce";
 //
 //    SameSite getSameSite() {
 //        return this.sameSite;
@@ -80,9 +82,14 @@ public class TransientCookieStore {
     }
 
     private static void store(HttpServletResponse response, String key, String value, SameSite sameSite, boolean legacySameSiteCookie) {
+        Validate.notNull(response, "response must not be null");
+        Validate.notNull(key, "key must not be null");
+        Validate.notNull(value, "value must not be null");
+        Validate.notNull(sameSite, "sameSite must not be null");
+
         boolean sameSiteNone = SameSite.NONE.equals(sameSite);
 
-        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite);
+        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite.getValue());
         if (sameSiteNone) {
             cookie = cookie.concat("; Secure");
         }
