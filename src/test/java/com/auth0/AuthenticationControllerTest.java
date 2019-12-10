@@ -12,8 +12,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -339,26 +341,30 @@ public class AuthenticationControllerTest {
         assertThat(requestProcessor.verifyOptions.getMaxAge(), is(12345));
     }
 
-//    @Test
-//    public void shouldProcessRequest() throws IdentityVerificationException {
-//        RequestProcessor requestProcessor = mock(RequestProcessor.class);
-//        AuthenticationController controller = new AuthenticationController(requestProcessor);
-//
-//        HttpServletRequest req = new MockHttpServletRequest();
-//        controller.handle(req);
-//
-//        verify(requestProcessor).process(req);
-//    }
+    @Test
+    public void shouldProcessRequest() throws IdentityVerificationException {
+        RequestProcessor requestProcessor = mock(RequestProcessor.class);
+        AuthenticationController controller = new AuthenticationController(requestProcessor);
 
-//    @Test
-//    public void shouldBuildAuthorizeUriWithRandomStateAndNonce() {
-//        RequestProcessor requestProcessor = mock(RequestProcessor.class);
-//        AuthenticationController controller = new AuthenticationController(requestProcessor);
-//
-//        HttpServletRequest req = new MockHttpServletRequest();
-//        controller.buildAuthorizeUrl(req, "https://redirect.uri/here");
-//
-//        verify(requestProcessor).buildAuthorizeUrl(eq(req), eq("https://redirect.uri/here"), anyString(), anyString());
-//    }
+        HttpServletRequest req = new MockHttpServletRequest();
+        HttpServletResponse response = new MockHttpServletResponse();
+
+        controller.handle(req, response);
+
+        verify(requestProcessor).process(req, response);
+    }
+
+    @Test
+    public void shouldilildAuthorizeUriWithRandomStateAndNonce() {
+        RequestProcessor requestProcessor = mock(RequestProcessor.class);
+        AuthenticationController controller = new AuthenticationController(requestProcessor);
+
+        HttpServletRequest req = new MockHttpServletRequest();
+        HttpServletResponse response = new MockHttpServletResponse();
+
+        controller.buildAuthorizeUrl(req, response,"https://redirect.uri/here");
+
+        verify(requestProcessor).buildAuthorizeUrl(eq(req), eq(response), eq("https://redirect.uri/here"), anyString(), anyString());
+    }
 
 }

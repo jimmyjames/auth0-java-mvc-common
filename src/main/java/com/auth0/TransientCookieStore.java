@@ -29,27 +29,13 @@ public class TransientCookieStore {
         }
     }
 
-    private SameSite sameSite;
-    private boolean isSecure;
-
     private static final String STATE = "com.auth0.state";
     private static final String NONCE = "com.auth0.nonce";
-//
-//    SameSite getSameSite() {
-//        return this.sameSite;
-//    }
-//
-//    void setSameSite(SameSite sameSite) {
-//        this.sameSite = sameSite;
-//    }
-//
-//    boolean isSecure() {
-//        return this.isSecure;
-//    }
-//
-//    void setSecure(boolean isSecure) {
-//        this.isSecure = isSecure;
-//    }
+
+    // Prevent instantiation
+    private TransientCookieStore() {
+        throw new UnsupportedOperationException("Creating an instance of TransientCookieStore is not supported");
+    }
 
     /**
      * Generates a new random string using {@link SecureRandom}.

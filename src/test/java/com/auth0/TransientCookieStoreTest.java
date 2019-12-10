@@ -3,7 +3,9 @@ package com.auth0;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -95,6 +97,24 @@ public class TransientCookieStoreTest {
     }
 
     @Test
+    public void shouldRemoveStateSameSiteCookie() {
+        Cookie cookie1 = new Cookie("com.auth0.state", "123456");
+
+        request.setCookies(cookie1);
+
+        String state = TransientCookieStore.getState(request, response, false).get();
+        assertThat(state, is("123456"));
+
+        Cookie[] cookies = response.getCookies();
+        assertThat(cookies, is(notNullValue()));
+
+        List<Cookie> cookieList = Arrays.asList(cookies);
+        assertThat(cookieList.size(), is(1));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
+    }
+
+    @Test
     public void shouldRemoveNonceSameSiteCookieAndFallbackCookie() {
         Cookie cookie1 = new Cookie("com.auth0.nonce", "123456");
         Cookie cookie2 = new Cookie("_com.auth0.nonce", "123456");
@@ -109,6 +129,24 @@ public class TransientCookieStoreTest {
 
         List<Cookie> cookieList = Arrays.asList(cookies);
         assertThat(cookieList.size(), is(2));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
+    }
+
+    @Test
+    public void shouldRemoveNonceSameSiteCookie() {
+        Cookie cookie1 = new Cookie("com.auth0.nonce", "123456");
+
+        request.setCookies(cookie1);
+
+        String state = TransientCookieStore.getNonce(request, response, true).get();
+        assertThat(state, is("123456"));
+
+        Cookie[] cookies = response.getCookies();
+        assertThat(cookies, is(notNullValue()));
+
+        List<Cookie> cookieList = Arrays.asList(cookies);
+        assertThat(cookieList.size(), is(1));
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
     }
