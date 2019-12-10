@@ -29,7 +29,7 @@ public class TransientCookieStoreTest {
 
     @Test
     public void shouldGetRandomString() {
-        String string = RandomStorage.secureRandomString();
+        String string = TransientCookieStore.secureRandomString();
         Assert.assertThat(string, is(notNullValue()));
     }
 
