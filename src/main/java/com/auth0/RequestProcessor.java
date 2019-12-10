@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static com.auth0.InvalidRequestException.*;
 
@@ -52,6 +53,10 @@ class RequestProcessor {
         this.legacySameSiteCookie = legacySameSiteCookie;
     }
 
+
+    RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions) {
+        this(client, responseType, verifyOptions, true);
+    }
 
     RequestProcessor(AuthAPI client, String responseType, IdTokenVerifier.Options verifyOptions, boolean legacySameSiteCookie) {
         this(client, responseType, verifyOptions, new IdTokenVerifier(), legacySameSiteCookie);
@@ -120,10 +125,14 @@ class RequestProcessor {
             throw new InvalidRequestException(MISSING_ACCESS_TOKEN, "Access Token is missing from the response.");
         }
 
-        String expectedNonce = TransientCookieStore.getNonce(req, response, legacySameSiteCookie);
+        Optional<String> expectedNonce = TransientCookieStore.getNonce(req, response, legacySameSiteCookie);
 
+        if (expectedNonce.isPresent()) {
+            // Dynamically set. Changes on every request.
+            verifyOptions.setNonce(expectedNonce.get());
+        }
         // Dynamically set. Changes on every request.
-        verifyOptions.setNonce(expectedNonce);
+//        verifyOptions.setNonce(expectedNonce);
 
         return getVerifiedTokens(req, frontChannelTokens, responseTypeList);
     }
@@ -205,13 +214,16 @@ class RequestProcessor {
      */
     private void assertValidState(HttpServletRequest req, HttpServletResponse response) throws InvalidRequestException {
         String stateFromRequest = req.getParameter(KEY_STATE);
-        String actualState = TransientCookieStore.getState(req, response, legacySameSiteCookie);
+        Optional<String> actualState = TransientCookieStore.getState(req, response, legacySameSiteCookie);
 
         // TODO handle null
-        boolean valid = stateFromRequest.equals(actualState);
-        if (!valid) {
+        if (!actualState.isPresent() || !stateFromRequest.equals(actualState.get())) {
             throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
         }
+//        boolean valid = stateFromRequest.equals(actualState);
+//        if (!valid) {
+//            throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
+//        }
     }
 
     /**

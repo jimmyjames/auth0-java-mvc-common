@@ -9,6 +9,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 public class TransientCookieStore {
 
@@ -73,11 +74,11 @@ public class TransientCookieStore {
         store(response, NONCE, nonce, sameSite, legacySameSiteCookie);
     }
 
-    static String getState(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
+    static Optional<String> getState(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(STATE, request, response, legacySameSiteCookie);
     }
 
-    static String getNonce(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
+    static Optional<String> getNonce(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(NONCE, request, response, legacySameSiteCookie);
     }
 
@@ -103,9 +104,14 @@ public class TransientCookieStore {
 
     }
 
-    private static String getOnce(String cookieName, HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
-        List<Cookie> cookies = Arrays.asList(request.getCookies());
-        Cookie cookie = cookies.stream()
+    private static Optional<String> getOnce(String cookieName, HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return Optional.empty();
+        }
+
+        List<Cookie> cookiesList = Arrays.asList(cookies);
+        Cookie cookie = cookiesList.stream()
                 .filter(c -> cookieName.equals(c.getName()))
                 .findFirst()
                 .orElse(null);
@@ -115,7 +121,7 @@ public class TransientCookieStore {
         delete(cookie, response);
 
         if (legacySameSiteCookie) {
-            Cookie legacyCookie = cookies.stream()
+            Cookie legacyCookie = cookiesList.stream()
                     .filter(c -> ("_" + cookieName).equals(c.getName()))
                     .findFirst()
                     .orElse(null);
@@ -126,7 +132,8 @@ public class TransientCookieStore {
             delete(legacyCookie, response);
         }
 
-        return cookieVal;
+        return Optional.ofNullable(cookieVal);
+//        return cookieVal;
     }
 
     private static void delete(Cookie cookie, HttpServletResponse response) {

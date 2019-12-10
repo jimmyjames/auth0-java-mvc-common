@@ -11,6 +11,7 @@ import javax.servlet.http.Cookie;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -81,7 +82,7 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1, cookie2);
 
-        String state = TransientCookieStore.getState(request, response, true);
+        String state = TransientCookieStore.getState(request, response, true).get();
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -100,7 +101,7 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1, cookie2);
 
-        String state = TransientCookieStore.getNonce(request, response, true);
+        String state = TransientCookieStore.getNonce(request, response, true).get();
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -110,6 +111,37 @@ public class TransientCookieStoreTest {
         assertThat(cookieList.size(), is(2));
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
+    }
+
+    @Test
+    public void shouldReturnEmptyStateWhenNoCookies() {
+        Optional<String> state = TransientCookieStore.getState(request, response, true);
+        assertThat(state.isPresent(), is(false));
+    }
+
+    @Test
+    public void shouldReturnEmptyNonceWhenNoCookies() {
+        Optional<String> nonce = TransientCookieStore.getNonce(request, response, true);
+        assertThat(nonce.isPresent(), is(false));
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenNoStateCookie() {
+        Cookie cookie1 = new Cookie("someCookie", "123456");
+        request.setCookies(cookie1);
+
+        Optional<String> state = TransientCookieStore.getState(request, response, true);
+        assertThat(state.isPresent(), is(false));
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenNoNonceCookie() {
+        Cookie cookie1 = new Cookie("someCookie", "123456");
+        request.setCookies(cookie1);
+
+        Optional<String> nonce = TransientCookieStore.getNonce(request, response, true);
+        assertThat(nonce.isPresent(), is(false));
+        assertThat(nonce.isPresent(), is(false));
     }
 //    @Test
 //    public void shouldAcceptBothNullStates() {
