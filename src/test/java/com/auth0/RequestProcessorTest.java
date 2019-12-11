@@ -150,7 +150,7 @@ public class RequestProcessorTest {
         params.put("state", "1234");
         params.put("id_token", "frontIdToken");
         MockHttpServletRequest req = getRequest(params);
-        req.setCookies(new Cookie("com.auth0.state", "1234"));
+        req.setCookies(new Cookie("com.auth0.state", "1234"), new Cookie("com.auth0.nonce", "5678"));
 
         RequestProcessor handler = new RequestProcessor(client, "id_token", verifyOptions, tokenVerifier, true);
         Tokens process = handler.process(req, response);
@@ -359,7 +359,7 @@ public class RequestProcessorTest {
         IdTokenVerifier.Options verifyOptions = new IdTokenVerifier.Options("issuer", "audience", signatureVerifier);
         RequestProcessor handler = new RequestProcessor(client, "code", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -380,7 +380,7 @@ public class RequestProcessorTest {
         when(verifyOptions.getMaxAge()).thenReturn(906030);
         RequestProcessor handler = new RequestProcessor(client, "code", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -392,7 +392,7 @@ public class RequestProcessorTest {
         AuthAPI client = new AuthAPI("me.auth0.com", "clientId", "clientSecret");
         RequestProcessor handler = new RequestProcessor(client, "code", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -404,7 +404,7 @@ public class RequestProcessorTest {
         AuthAPI client = new AuthAPI("me.auth0.com", "clientId", "clientSecret");
         RequestProcessor handler = new RequestProcessor(client, "id_token", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -416,7 +416,7 @@ public class RequestProcessorTest {
         AuthAPI client = new AuthAPI("me.auth0.com", "clientId", "clientSecret");
         RequestProcessor handler = new RequestProcessor(client, "id_token", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", null);
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", null);
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -428,7 +428,7 @@ public class RequestProcessorTest {
         AuthAPI client = new AuthAPI("me.auth0.com", "clientId", "clientSecret");
         RequestProcessor handler = new RequestProcessor(client, "id_token", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response,"https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response,"https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));
@@ -447,7 +447,7 @@ public class RequestProcessorTest {
         AuthAPI client = new AuthAPI("me.auth0.com", "clientId", "clientSecret");
         RequestProcessor handler = new RequestProcessor(client, "token", verifyOptions);
         HttpServletRequest req = new MockHttpServletRequest();
-        AuthorizeUrl builder = handler.buildAuthorizeUrl(req, response, "https://redirect.uri/here", "state", "nonce");
+        AuthorizeUrl builder = handler.buildAuthorizeUrl(response, "https://redirect.uri/here", "state", "nonce");
         String authorizeUrl = builder.build();
 
         assertThat(authorizeUrl, is(notNullValue()));

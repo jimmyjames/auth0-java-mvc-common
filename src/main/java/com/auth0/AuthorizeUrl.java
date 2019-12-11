@@ -3,7 +3,6 @@ package com.auth0;
 import com.auth0.client.auth.AuthAPI;
 import com.auth0.client.auth.AuthorizeUrlBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
 public class AuthorizeUrl {
 
     private static final String SCOPE_OPENID = "openid";
-    private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final AuthorizeUrlBuilder builder;
     private final String responseType;
@@ -28,12 +26,11 @@ public class AuthorizeUrl {
 
     /**
      * @param client       the Auth0 Authentication API client
-     * @param request      request where the state will be saved
+     * @param response     the response where the state and nonce will be stored as cookies
      * @param redirectUrl  the url to redirect to after authentication
      * @param responseType the response type to use
      */
-    AuthorizeUrl(AuthAPI client, HttpServletRequest request, HttpServletResponse response, String redirectUrl, String responseType) {
-        this.request = request;
+    AuthorizeUrl(AuthAPI client, HttpServletResponse response, String redirectUrl, String responseType) {
         this.response = response;
         this.responseType = responseType;
         this.legacySameSiteCookie = true;
@@ -53,7 +50,7 @@ public class AuthorizeUrl {
         return this;
     }
 
-    public AuthorizeUrl withLegacySameSiteCookie(boolean legacySameSiteCookie) {
+    AuthorizeUrl withLegacySameSiteCookie(boolean legacySameSiteCookie) {
         this.legacySameSiteCookie = legacySameSiteCookie;
         return this;
     }

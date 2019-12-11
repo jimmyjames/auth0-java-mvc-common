@@ -16,6 +16,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -355,16 +356,75 @@ public class AuthenticationControllerTest {
     }
 
     @Test
-    public void shouldilildAuthorizeUriWithRandomStateAndNonce() {
+    public void shouldBuildAuthorizeUriWithRandomStateAndNonce() {
         RequestProcessor requestProcessor = mock(RequestProcessor.class);
         AuthenticationController controller = new AuthenticationController(requestProcessor);
 
-        HttpServletRequest req = new MockHttpServletRequest();
         HttpServletResponse response = new MockHttpServletResponse();
 
-        controller.buildAuthorizeUrl(req, response,"https://redirect.uri/here");
+        controller.buildAuthorizeUrl(response,"https://redirect.uri/here");
 
-        verify(requestProcessor).buildAuthorizeUrl(eq(req), eq(response), eq("https://redirect.uri/here"), anyString(), anyString());
+        verify(requestProcessor).buildAuthorizeUrl(eq(response), eq("https://redirect.uri/here"), anyString(), anyString());
+    }
+
+    @Test
+    public void shouldSetLaxCookiesAndNoLegacyCookieWhenCodeFlow() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        AuthenticationController controller = AuthenticationController.newBuilder("domain", "clientId", "clientSecret")
+                .build();
+
+        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+                .withState("state")
+                .build();
+
+        List<String> headers = response.getHeaders("Set-Cookie");
+
+        assertThat(headers.size(), is(1));
+        assertThat(headers, everyItem(is("com.auth0.state=state; HttpOnly; SameSite=Lax")));
+    }
+
+    @Test
+    public void shouldSetSameSiteNoneCookiesAndLegacyCookieWhenIdTokenResponse() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        AuthenticationController controller = AuthenticationController.newBuilder("domain", "clientId", "clientSecret")
+                .withResponseType("id_token")
+                .build();
+
+        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+                .withState("state")
+                .withNonce("nonce")
+                .build();
+
+        List<String> headers = response.getHeaders("Set-Cookie");
+
+        assertThat(headers.size(), is(4));
+        assertThat(headers.contains("com.auth0.state=state; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers.contains("_com.auth0.state=state; HttpOnly"), is(true));
+        assertThat(headers.contains("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers.contains("_com.auth0.nonce=nonce; HttpOnly"), is(true));
+    }
+
+    @Test
+    public void shouldSetSameSiteNoneCookiesAndNoLegacyCookieWhenIdTokenResponse() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        AuthenticationController controller = AuthenticationController.newBuilder("domain", "clientId", "clientSecret")
+                .withResponseType("id_token")
+                .withLegacySameSiteCookie(false)
+                .build();
+
+        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+                .withState("state")
+                .withNonce("nonce")
+                .build();
+
+        List<String> headers = response.getHeaders("Set-Cookie");
+
+        assertThat(headers.size(), is(2));
+        assertThat(headers.contains("com.auth0.state=state; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers.contains("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"), is(true));
     }
 
 }

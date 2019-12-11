@@ -227,18 +227,18 @@ public class AuthenticationController {
     /**
      * Pre builds an Auth0 Authorize Url with the given redirect URI using a random state and a random nonce if applicable.
      *
-     * @param request     the caller request. Used to keep the session context.
+     * @param response    the response. Used to store auth-based cookies.
      * @param redirectUri the url to call back with the authentication result.
      * @return the authorize url builder to continue any further parameter customization.
      */
-    public AuthorizeUrl buildAuthorizeUrl(HttpServletRequest request, HttpServletResponse response, String redirectUri) {
-        Validate.notNull(request);
+    public AuthorizeUrl buildAuthorizeUrl(HttpServletResponse response, String redirectUri) {
+        Validate.notNull(response);
         Validate.notNull(redirectUri);
 
         String state = TransientCookieStore.secureRandomString();
         String nonce = TransientCookieStore.secureRandomString();
 
-        return requestProcessor.buildAuthorizeUrl(request, response, redirectUri, state, nonce);
+        return requestProcessor.buildAuthorizeUrl(response, redirectUri, state, nonce);
     }
 
 }
