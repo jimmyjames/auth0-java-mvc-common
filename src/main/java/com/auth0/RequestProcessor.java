@@ -83,9 +83,8 @@ class RequestProcessor {
      */
     AuthorizeUrl buildAuthorizeUrl(HttpServletResponse response, String redirectUri, String state, String nonce) {
         AuthorizeUrl creator = new AuthorizeUrl(client, response, redirectUri, responseType)
-                .withState(state);
-
-        creator.withLegacySameSiteCookie(legacySameSiteCookie);
+                .withState(state)
+                .withLegacySameSiteCookie(legacySameSiteCookie);
 
         List<String> responseTypeList = getResponseType();
         if (responseTypeList.contains(KEY_ID_TOKEN) && nonce != null) {
