@@ -11,23 +11,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
-public class TransientCookieStore {
-
-    enum SameSite {
-        LAX("Lax"),
-        NONE("None"),
-        STRICT("Strict");
-
-        private String value;
-
-        public String getValue() {
-            return this.value;
-        }
-
-        SameSite(String value) {
-            this.value = value;
-        }
-    }
+/**
+ * Allows storage and retrieval/removal of cookies.
+ */
+class TransientCookieStore {
 
     private static final String STATE = "com.auth0.state";
     private static final String NONCE = "com.auth0.nonce";
@@ -52,18 +39,46 @@ public class TransientCookieStore {
     }
 
 
+    /**
+     * Stores a state value as a cookie on the response.
+     * @param response the response object to set the cookie on
+     * @param state the value for the state cookie
+     * @param sameSite the value for the SameSite attribute on the cookie
+     * @param legacySameSiteCookie whether to set a fallback cookie or not
+     */
     static void storeState(HttpServletResponse response, String state, SameSite sameSite, boolean legacySameSiteCookie) {
         store(response, STATE, state, sameSite, legacySameSiteCookie);
     }
 
+    /**
+     * Stores a nonce value as a cookie on the response.
+     * @param response the response object to set the cookie on
+     * @param nonce the value for the nonce cookie
+     * @param sameSite the value for the SameSite attribute on the cookie
+     * @param legacySameSiteCookie whether to set a fallback cookie or not
+     */
     static void storeNonce(HttpServletResponse response, String nonce, SameSite sameSite, boolean legacySameSiteCookie) {
         store(response, NONCE, nonce, sameSite, legacySameSiteCookie);
     }
 
+    /**
+     * Gets the value associated with the state cookie and removes it.
+     * @param request the request object
+     * @param response the response object
+     * @param legacySameSiteCookie whether to use a fallback cookie or not
+     * @return the value of the state cookie, if it exists
+     */
     static Optional<String> getState(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(STATE, request, response, legacySameSiteCookie);
     }
 
+    /**
+     * Gets the value associated with the nonce cookie and removes it.
+     * @param request the request object
+     * @param response the response object
+     * @param legacySameSiteCookie whether to use a fallback cookie or not
+     * @return the value of the nonce cookie, if it exists
+     */
     static Optional<String> getNonce(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(NONCE, request, response, legacySameSiteCookie);
     }
@@ -97,29 +112,25 @@ public class TransientCookieStore {
         }
 
         List<Cookie> cookiesList = Arrays.asList(cookies);
-        Cookie cookie = cookiesList.stream()
+
+        Optional<Cookie> cookie = cookiesList.stream()
                 .filter(c -> cookieName.equals(c.getName()))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
 
-        String cookieVal = cookie == null ? null : cookie.getValue();
+        Optional<String> cookieVal = cookie.map(Cookie::getValue);
+        cookie.ifPresent(c -> delete(cookie.get(), response));
 
-        delete(cookie, response);
-
+        Optional<String> legacyCookieVal = Optional.empty();
         if (legacySameSiteCookie) {
-            Cookie legacyCookie = cookiesList.stream()
+            Optional<Cookie> legacyCookie = cookiesList.stream()
                     .filter(c -> ("_" + cookieName).equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
+                    .findFirst();
 
-            String legacyCookieVal = legacyCookie == null ? null : legacyCookie.getValue();
-
-            cookieVal = cookieVal == null ? legacyCookieVal : cookieVal;
-            delete(legacyCookie, response);
+            legacyCookieVal = legacyCookie.map(Cookie::getValue);
+            legacyCookie.ifPresent(c -> delete(legacyCookie.get(), response));
         }
 
-        return Optional.ofNullable(cookieVal);
-//        return cookieVal;
+        return cookieVal.isPresent() ? cookieVal : legacyCookieVal;
     }
 
     private static void delete(Cookie cookie, HttpServletResponse response) {
@@ -127,6 +138,22 @@ public class TransientCookieStore {
             cookie.setMaxAge(0);
             cookie.setValue("");
             response.addCookie(cookie);
+        }
+    }
+
+    enum SameSite {
+        LAX("Lax"),
+        NONE("None"),
+        STRICT("Strict");
+
+        private String value;
+
+        public String getValue() {
+            return this.value;
+        }
+
+        SameSite(String value) {
+            this.value = value;
         }
     }
 }

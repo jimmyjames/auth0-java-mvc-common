@@ -3,20 +3,17 @@ package com.auth0;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.http.Cookie;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class TransientCookieStoreTest {
 
@@ -84,7 +81,7 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1, cookie2);
 
-        String state = TransientCookieStore.getState(request, response, true).get();
+        String state = TransientCookieStore.getState(request, response, true).orElse(null);
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -102,7 +99,25 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1);
 
-        String state = TransientCookieStore.getState(request, response, false).get();
+        String state = TransientCookieStore.getState(request, response, false).orElse(null);
+        assertThat(state, is("123456"));
+
+        Cookie[] cookies = response.getCookies();
+        assertThat(cookies, is(notNullValue()));
+
+        List<Cookie> cookieList = Arrays.asList(cookies);
+        assertThat(cookieList.size(), is(1));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
+    }
+
+    @Test
+    public void shouldRemoveStateFallbackCookie() {
+        Cookie cookie1 = new Cookie("_com.auth0.state", "123456");
+
+        request.setCookies(cookie1);
+
+        String state = TransientCookieStore.getState(request, response, true).orElse(null);
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -121,7 +136,7 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1, cookie2);
 
-        String state = TransientCookieStore.getNonce(request, response, true).get();
+        String state = TransientCookieStore.getNonce(request, response, true).orElse(null);
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -139,7 +154,25 @@ public class TransientCookieStoreTest {
 
         request.setCookies(cookie1);
 
-        String state = TransientCookieStore.getNonce(request, response, true).get();
+        String state = TransientCookieStore.getNonce(request, response, true).orElse(null);
+        assertThat(state, is("123456"));
+
+        Cookie[] cookies = response.getCookies();
+        assertThat(cookies, is(notNullValue()));
+
+        List<Cookie> cookieList = Arrays.asList(cookies);
+        assertThat(cookieList.size(), is(1));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
+        assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
+    }
+
+    @Test
+    public void shouldRemoveNonceFallbackCookie() {
+        Cookie cookie1 = new Cookie("_com.auth0.nonce", "123456");
+
+        request.setCookies(cookie1);
+
+        String state = TransientCookieStore.getNonce(request, response, true).orElse(null);
         assertThat(state, is("123456"));
 
         Cookie[] cookies = response.getCookies();
@@ -181,6 +214,7 @@ public class TransientCookieStoreTest {
         assertThat(nonce.isPresent(), is(false));
         assertThat(nonce.isPresent(), is(false));
     }
+
 //    @Test
 //    public void shouldAcceptBothNullStates() {
 //        MockHttpServletRequest req = new MockHttpServletRequest();
