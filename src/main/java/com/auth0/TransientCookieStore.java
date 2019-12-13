@@ -118,7 +118,7 @@ class TransientCookieStore {
                 .findFirst();
 
         Optional<String> cookieVal = cookie.map(Cookie::getValue);
-        cookie.ifPresent(c -> delete(cookie.get(), response));
+        cookie.ifPresent(c -> delete(c, response));
 
         Optional<String> legacyCookieVal = Optional.empty();
         if (legacySameSiteCookie) {
@@ -127,7 +127,7 @@ class TransientCookieStore {
                     .findFirst();
 
             legacyCookieVal = legacyCookie.map(Cookie::getValue);
-            legacyCookie.ifPresent(c -> delete(legacyCookie.get(), response));
+            legacyCookie.ifPresent(c -> delete(c, response));
         }
 
         return cookieVal.isPresent() ? cookieVal : legacyCookieVal;
