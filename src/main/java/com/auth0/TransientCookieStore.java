@@ -89,7 +89,7 @@ class TransientCookieStore {
         Validate.notNull(value, "value must not be null");
         Validate.notNull(sameSite, "sameSite must not be null");
 
-        boolean sameSiteNone = SameSite.NONE.equals(sameSite);
+        boolean sameSiteNone = SameSite.NONE == sameSite;
 
         String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite.getValue());
         if (sameSiteNone) {
