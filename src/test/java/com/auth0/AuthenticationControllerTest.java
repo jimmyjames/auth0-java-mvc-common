@@ -400,10 +400,10 @@ public class AuthenticationControllerTest {
         List<String> headers = response.getHeaders("Set-Cookie");
 
         assertThat(headers.size(), is(4));
-        assertThat(headers.contains("com.auth0.state=state; HttpOnly; SameSite=None; Secure"), is(true));
-        assertThat(headers.contains("_com.auth0.state=state; HttpOnly"), is(true));
-        assertThat(headers.contains("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"), is(true));
-        assertThat(headers.contains("_com.auth0.nonce=nonce; HttpOnly"), is(true));
+        assertThat(headers, hasItem("com.auth0.state=state; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.state=state; HttpOnly"));
+        assertThat(headers, hasItem("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.nonce=nonce; HttpOnly"));
     }
 
     @Test
@@ -423,8 +423,8 @@ public class AuthenticationControllerTest {
         List<String> headers = response.getHeaders("Set-Cookie");
 
         assertThat(headers.size(), is(2));
-        assertThat(headers.contains("com.auth0.state=state; HttpOnly; SameSite=None; Secure"), is(true));
-        assertThat(headers.contains("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers, hasItem("com.auth0.state=state; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("com.auth0.nonce=nonce; HttpOnly; SameSite=None; Secure"));
     }
 
 }

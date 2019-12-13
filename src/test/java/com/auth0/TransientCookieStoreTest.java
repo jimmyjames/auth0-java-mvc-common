@@ -39,8 +39,8 @@ public class TransientCookieStoreTest {
         List<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(2));
 
-        assertThat(headers.contains("com.auth0.state=123456; HttpOnly; SameSite=None; Secure"), is(true));
-        assertThat(headers.contains("_com.auth0.state=123456; HttpOnly"), is(true));
+        assertThat(headers, hasItem("com.auth0.state=123456; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.state=123456; HttpOnly"));
     }
 
     @Test
@@ -50,7 +50,7 @@ public class TransientCookieStoreTest {
         List<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(1));
 
-        assertThat(headers.contains("com.auth0.state=123456; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers, hasItem("com.auth0.state=123456; HttpOnly; SameSite=None; Secure"));
     }
 
     @Test
@@ -60,8 +60,8 @@ public class TransientCookieStoreTest {
         List<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(2));
 
-        assertThat(headers.contains("com.auth0.nonce=123456; HttpOnly; SameSite=None; Secure"), is(true));
-        assertThat(headers.contains("_com.auth0.nonce=123456; HttpOnly"), is(true));
+        assertThat(headers, hasItem("com.auth0.nonce=123456; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.nonce=123456; HttpOnly"));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TransientCookieStoreTest {
         List<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(1));
 
-        assertThat(headers.contains("com.auth0.nonce=123456; HttpOnly; SameSite=None; Secure"), is(true));
+        assertThat(headers, hasItem("com.auth0.nonce=123456; HttpOnly; SameSite=None; Secure"));
     }
 
     @Test
@@ -89,6 +89,7 @@ public class TransientCookieStoreTest {
 
         List<Cookie> cookieList = Arrays.asList(cookies);
         assertThat(cookieList.size(), is(2));
+
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("value", is(""))));
         assertThat(Arrays.asList(cookies), everyItem(HasPropertyWithValue.hasProperty("maxAge", is(0))));
     }
