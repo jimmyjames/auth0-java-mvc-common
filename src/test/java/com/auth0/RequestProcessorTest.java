@@ -93,6 +93,21 @@ public class RequestProcessorTest {
     }
 
     @Test
+    public void shouldThrowOnProcessIfRequestHasMissingState() throws Exception {
+        exception.expect(InvalidRequestException.class);
+        exception.expect(InvalidRequestExceptionMatcher.hasCode("a0.invalid_state"));
+        exception.expect(InvalidRequestExceptionMatcher.hasDescription("The received state doesn't match the expected one."));
+        exception.expectMessage("The received state doesn't match the expected one.");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("state", "1234");
+        MockHttpServletRequest req = getRequest(params);
+
+        RequestProcessor handler = new RequestProcessor(client, "code", verifyOptions);
+        handler.process(req, response);
+    }
+
+    @Test
     public void shouldThrowOnProcessIfIdTokenRequestIsMissingIdToken() throws Exception {
         exception.expect(InvalidRequestException.class);
         exception.expect(InvalidRequestExceptionMatcher.hasCode("a0.missing_id_token"));

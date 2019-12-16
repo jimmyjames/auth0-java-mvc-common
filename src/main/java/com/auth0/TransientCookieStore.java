@@ -134,11 +134,9 @@ class TransientCookieStore {
     }
 
     private static void delete(Cookie cookie, HttpServletResponse response) {
-        if (cookie != null) {
-            cookie.setMaxAge(0);
-            cookie.setValue("");
-            response.addCookie(cookie);
-        }
+        cookie.setMaxAge(0);
+        cookie.setValue("");
+        response.addCookie(cookie);
     }
 
     enum SameSite {

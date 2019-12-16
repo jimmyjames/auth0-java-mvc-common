@@ -5,6 +5,7 @@ import com.auth0.client.auth.AuthorizeUrlBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,6 +16,8 @@ import java.util.List;
 public class AuthorizeUrl {
 
     private static final String SCOPE_OPENID = "openid";
+    private static final String RESPONSE_MODE_ID_TOKEN = "id_token";
+    private static final String RESPONSE_MODE_TOKEN = "token";
     private final HttpServletResponse response;
     private final AuthorizeUrlBuilder builder;
     private final String responseType;
@@ -149,8 +152,9 @@ public class AuthorizeUrl {
     }
 
     private boolean containsFormPost() {
-        List<String> responseTypes = Arrays.asList(responseType.split(" "));
-        return responseTypes.contains("id_token");
+        String[] splitResponseTypes = responseType.trim().split("\\s+");
+        List<String> responseTypes = Collections.unmodifiableList(Arrays.asList(splitResponseTypes));
+        return responseTypes.contains(RESPONSE_MODE_ID_TOKEN) || responseTypes.contains(RESPONSE_MODE_TOKEN);
     }
 
 }

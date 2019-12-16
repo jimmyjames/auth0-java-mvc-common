@@ -124,14 +124,10 @@ class RequestProcessor {
             throw new InvalidRequestException(MISSING_ACCESS_TOKEN, "Access Token is missing from the response.");
         }
 
-        Optional<String> expectedNonce = TransientCookieStore.getNonce(req, response, legacySameSiteCookie);
-
-        if (expectedNonce.isPresent()) {
-            // Dynamically set. Changes on every request.
-            verifyOptions.setNonce(expectedNonce.get());
-        }
-        // Dynamically set. Changes on every request.
-//        verifyOptions.setNonce(expectedNonce);
+        // Nonce dynamically set and changes on every request.
+        TransientCookieStore
+                .getNonce(req, response, legacySameSiteCookie)
+                .ifPresent(verifyOptions::setNonce);
 
         return getVerifiedTokens(req, frontChannelTokens, responseTypeList);
     }
@@ -177,7 +173,7 @@ class RequestProcessor {
     }
 
     List<String> getResponseType() {
-        return Arrays.asList(responseType.split(" "));
+        return Arrays.asList(responseType.trim().split("\\s+"));
     }
 
     /**
@@ -215,14 +211,9 @@ class RequestProcessor {
         String stateFromRequest = req.getParameter(KEY_STATE);
         Optional<String> actualState = TransientCookieStore.getState(req, response, legacySameSiteCookie);
 
-        // TODO handle null
         if (!actualState.isPresent() || !stateFromRequest.equals(actualState.get())) {
             throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
         }
-//        boolean valid = stateFromRequest.equals(actualState);
-//        if (!valid) {
-//            throw new InvalidRequestException(INVALID_STATE_ERROR, "The received state doesn't match the expected one.");
-//        }
     }
 
     /**
