@@ -81,8 +81,8 @@ public class AuthorizeUrlTest {
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(2));
-        assertThat(headers, hasItem("com.auth0.nonce=asdfghjkl; HttpOnly; SameSite=None; Secure"));
-        assertThat(headers, hasItem("_com.auth0.nonce=asdfghjkl; HttpOnly"));
+        assertThat(headers, hasItem("com.auth0.nonce=asdfghjkl; HttpOnly; Max-Age=600; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.nonce=asdfghjkl; HttpOnly; Max-Age=600"));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class AuthorizeUrlTest {
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(1));
-        assertThat(headers, hasItem("com.auth0.nonce=asdfghjkl; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("com.auth0.nonce=asdfghjkl; HttpOnly; Max-Age=600; SameSite=None; Secure"));
     }
 
     @Test
@@ -107,8 +107,8 @@ public class AuthorizeUrlTest {
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(2));
-        assertThat(headers, hasItem("com.auth0.state=asdfghjkl; HttpOnly; SameSite=None; Secure"));
-        assertThat(headers, hasItem("_com.auth0.state=asdfghjkl; HttpOnly"));
+        assertThat(headers, hasItem("com.auth0.state=asdfghjkl; HttpOnly; Max-Age=600; SameSite=None; Secure"));
+        assertThat(headers, hasItem("_com.auth0.state=asdfghjkl; HttpOnly; Max-Age=600"));
     }
 
     @Test
@@ -121,7 +121,7 @@ public class AuthorizeUrlTest {
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         assertThat(headers.size(), is(1));
-        assertThat(headers, hasItem("com.auth0.state=asdfghjkl; HttpOnly; SameSite=None; Secure"));
+        assertThat(headers, hasItem("com.auth0.state=asdfghjkl; HttpOnly; Max-Age=600; SameSite=None; Secure"));
     }
 
     @Test

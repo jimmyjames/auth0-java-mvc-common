@@ -18,6 +18,7 @@ class TransientCookieStore {
 
     private static final String STATE = "com.auth0.state";
     private static final String NONCE = "com.auth0.nonce";
+    private static final int MAX_AGE_SECONDS = 600; // 10 minutes
 
     // Prevent instantiation
     private TransientCookieStore() {
@@ -91,7 +92,7 @@ class TransientCookieStore {
 
         boolean sameSiteNone = SameSite.NONE == sameSite;
 
-        String cookie = String.format("%s=%s; HttpOnly; SameSite=%s", key, value, sameSite.getValue());
+        String cookie = String.format("%s=%s; HttpOnly; Max-Age=%d; SameSite=%s", key, value, MAX_AGE_SECONDS, sameSite.getValue());
         if (sameSiteNone) {
             cookie = cookie.concat("; Secure");
         }
@@ -99,7 +100,7 @@ class TransientCookieStore {
 
         // set legacy fallback cookie (if configured) for clients that won't accept SameSite=None
         if (sameSiteNone && legacySameSiteCookie) {
-            String legacyCookie = String.format("%s=%s; HttpOnly", "_" + key, value);
+            String legacyCookie = String.format("%s=%s; HttpOnly; Max-Age=%d", "_" + key, value, MAX_AGE_SECONDS);
             response.addHeader("Set-Cookie", legacyCookie);
         }
 
