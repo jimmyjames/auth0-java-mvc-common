@@ -55,7 +55,7 @@ public class AuthorizeUrl {
 
     /**
      * Sets whether a fallback cookie should be used for clients that do not support "SameSite=None"
-     * @param legacySameSiteCookie
+     * @param legacySameSiteCookie whether or not to set fallback auth cookies for clients that do not support "SameSite=None"
      * @return the builder instance
      */
     AuthorizeUrl withLegacySameSiteCookie(boolean legacySameSiteCookie) {
@@ -159,6 +159,8 @@ public class AuthorizeUrl {
     private boolean containsFormPost() {
         String[] splitResponseTypes = responseType.trim().split("\\s+");
         List<String> responseTypes = Collections.unmodifiableList(Arrays.asList(splitResponseTypes));
+
+        // form_post response mode will be set if responseType includes "id_token" or "token"
         return responseTypes.contains(RESPONSE_MODE_ID_TOKEN) || responseTypes.contains(RESPONSE_MODE_TOKEN);
     }
 

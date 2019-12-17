@@ -35,7 +35,6 @@ class TransientCookieStore {
         final SecureRandom sr = new SecureRandom();
         final byte[] randomBytes = new byte[32];
         sr.nextBytes(randomBytes);
-        // TODO verify this is correct
         return new String(Base64.getUrlEncoder().encode(randomBytes));
     }
 
