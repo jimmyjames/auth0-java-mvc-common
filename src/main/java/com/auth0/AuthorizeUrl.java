@@ -16,8 +16,6 @@ import java.util.List;
 public class AuthorizeUrl {
 
     private static final String SCOPE_OPENID = "openid";
-    private static final String RESPONSE_MODE_ID_TOKEN = "id_token";
-    private static final String RESPONSE_MODE_TOKEN = "token";
     private final HttpServletResponse response;
     private final AuthorizeUrlBuilder builder;
     private final String responseType;
@@ -142,7 +140,8 @@ public class AuthorizeUrl {
             throw new IllegalStateException("The AuthorizeUrl instance must not be reused.");
         }
 
-        TransientCookieStore.SameSite sameSiteValue = containsFormPost() ? TransientCookieStore.SameSite.NONE : TransientCookieStore.SameSite.LAX;
+        TransientCookieStore.SameSite sameSiteValue = containsFormPost() ?
+                TransientCookieStore.SameSite.NONE : TransientCookieStore.SameSite.LAX;
 
         if (state != null) {
             TransientCookieStore.storeState(response, state, sameSiteValue, legacySameSiteCookie);
@@ -161,7 +160,7 @@ public class AuthorizeUrl {
         List<String> responseTypes = Collections.unmodifiableList(Arrays.asList(splitResponseTypes));
 
         // form_post response mode will be set if responseType includes "id_token" or "token"
-        return responseTypes.contains(RESPONSE_MODE_ID_TOKEN) || responseTypes.contains(RESPONSE_MODE_TOKEN);
+        return RequestProcessor.requiresFormPostResponseMode((responseTypes));
     }
 
 }

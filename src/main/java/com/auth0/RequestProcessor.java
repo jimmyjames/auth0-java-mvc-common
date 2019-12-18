@@ -89,7 +89,7 @@ class RequestProcessor {
         if (responseTypeList.contains(KEY_ID_TOKEN) && nonce != null) {
             creator.withNonce(nonce);
         }
-        if (responseTypeList.contains(KEY_TOKEN) || responseTypeList.contains(KEY_ID_TOKEN)) {
+        if (requiresFormPostResponseMode(responseTypeList)) {
             creator.withParameter(KEY_RESPONSE_MODE, KEY_FORM_POST);
         }
         if (verifyOptions.getMaxAge() != null) {
@@ -129,6 +129,11 @@ class RequestProcessor {
                 .ifPresent(verifyOptions::setNonce);
 
         return getVerifiedTokens(req, frontChannelTokens, responseTypeList);
+    }
+
+    static boolean requiresFormPostResponseMode(List<String> responseType) {
+        return responseType != null &&
+                (responseType.contains(KEY_TOKEN) || responseType.contains(KEY_ID_TOKEN));
     }
 
     /**

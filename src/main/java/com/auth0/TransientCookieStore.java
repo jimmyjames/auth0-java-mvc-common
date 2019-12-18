@@ -95,6 +95,8 @@ class TransientCookieStore {
         if (sameSiteNone) {
             cookie = cookie.concat("; Secure");
         }
+
+        // Servlet Cookie API does not yet support setting the SameSite attribute, so just set cookie on header
         response.addHeader("Set-Cookie", cookie);
 
         // set legacy fallback cookie (if configured) for clients that won't accept SameSite=None
