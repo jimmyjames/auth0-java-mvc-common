@@ -62,22 +62,24 @@ class TransientCookieStore {
     }
 
     /**
-     * Gets the value associated with the state cookie and removes it.
+     * Gets the value associated with the state cookie and removes that cookie.
      * @param request the request object
      * @param response the response object
      * @param legacySameSiteCookie whether to use a fallback cookie or not
-     * @return the value of the state cookie, if it exists
+     * @return an {@code Optional} containing the value of the state cookie,
+     * or an empty {@code Optional} if the cookie was not found.
      */
     static Optional<String> getState(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(STATE, request, response, legacySameSiteCookie);
     }
 
     /**
-     * Gets the value associated with the nonce cookie and removes it.
+     * Gets the value associated with the nonce cookie and removes that cookie.
      * @param request the request object
      * @param response the response object
      * @param legacySameSiteCookie whether to use a fallback cookie or not
-     * @return the value of the nonce cookie, if it exists
+     * @return an {@code Optional} containing the value of the nonce cookie,
+     * or an empty {@code Optional} if the cookie was not found.
      */
     static Optional<String> getNonce(HttpServletRequest request, HttpServletResponse response, boolean legacySameSiteCookie) {
         return getOnce(NONCE, request, response, legacySameSiteCookie);
