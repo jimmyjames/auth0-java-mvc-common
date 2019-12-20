@@ -7,11 +7,8 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Helper class to handle easy session key-value storage.
- *
- * @deprecated Use the {@link HttpSession} directly instead of using this class.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-@Deprecated
 public abstract class SessionUtils {
 
     /**
