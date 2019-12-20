@@ -362,9 +362,9 @@ public class AuthenticationControllerTest {
 
         HttpServletResponse response = new MockHttpServletResponse();
 
-        controller.buildAuthorizeUrl(response,"https://redirect.uri/here");
+        controller.buildAuthorizeUrl(new MockHttpServletRequest(), response,"https://redirect.uri/here");
 
-        verify(requestProcessor).buildAuthorizeUrl(eq(response), eq("https://redirect.uri/here"), anyString(), anyString());
+        verify(requestProcessor).buildAuthorizeUrl( eq(response), eq("https://redirect.uri/here"), anyString(), anyString());
     }
 
     @Test
@@ -374,7 +374,7 @@ public class AuthenticationControllerTest {
         AuthenticationController controller = AuthenticationController.newBuilder("domain", "clientId", "clientSecret")
                 .build();
 
-        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+        controller.buildAuthorizeUrl(new MockHttpServletRequest(), response, "https://redirect.uri/here")
                 .withState("state")
                 .build();
 
@@ -392,7 +392,7 @@ public class AuthenticationControllerTest {
                 .withResponseType("id_token")
                 .build();
 
-        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+        controller.buildAuthorizeUrl(new MockHttpServletRequest(), response, "https://redirect.uri/here")
                 .withState("state")
                 .withNonce("nonce")
                 .build();
@@ -415,7 +415,7 @@ public class AuthenticationControllerTest {
                 .withLegacySameSiteCookie(false)
                 .build();
 
-        controller.buildAuthorizeUrl(response, "https://redirect.uri/here")
+        controller.buildAuthorizeUrl(new MockHttpServletRequest(), response, "https://redirect.uri/here")
                 .withState("state")
                 .withNonce("nonce")
                 .build();
